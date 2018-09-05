@@ -5,8 +5,12 @@ using UnityEngine;
 
 public class MazeGenerator : MonoBehaviour
 {
+    [SerializeField]
+    private int width;
 
-    public int width, height;
+    [SerializeField]
+    private int height;
+
     public Transform Brick;
     private int[,] Maze;
     private List<Vector3> pathMazes = new List<Vector3>();
@@ -38,23 +42,20 @@ public class MazeGenerator : MonoBehaviour
             }
         }
     }
+    public static MazeGenerator Instance { get; private set; }
 
-    private static MazeGenerator instance;
-    public static MazeGenerator Instance
+    private void Awake()
     {
-        get
-        {
-            return instance;
-        }
-    }
-
-    void Awake()
-    {
-        instance = this;
+        Instance = this;
         GenerateMaze();
     }
 
-    void GenerateMaze()
+    private void Start()
+    {
+
+    }
+
+    private void GenerateMaze()
     {
         Maze = new int[width, height];
         for (int x = 0; x < width; x++)
