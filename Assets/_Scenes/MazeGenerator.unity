@@ -565,5 +565,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   width: 35
-  height: 35
-  Brick: {fileID: 114659546}
+  height: 31
+  brick: {fileID: 114659546}

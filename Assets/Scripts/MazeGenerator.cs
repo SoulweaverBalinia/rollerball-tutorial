@@ -11,20 +11,27 @@ public class MazeGenerator : MonoBehaviour
     [SerializeField]
     private int height;
 
-    public Transform Brick;
+    public Transform brick;
     private int[,] Maze;
+
+    private enum TileType { path, wall };
     private List<Vector3> pathMazes = new List<Vector3>();
-    private Stack<Vector2> _tiletoTry = new Stack<Vector2>();
-    private List<Vector2> offsets = new List<Vector2> { new Vector2(0, 1), new Vector2(0, -1), new Vector2(1, 0), new Vector2(-1, 0) };
+    private Stack<Vector2> tileStack = new Stack<Vector2>();
+
+    private readonly List<Vector2> offsets = new List<Vector2>
+    {
+        new Vector2(0, 1),
+        new Vector2(0, -1),
+        new Vector2(1, 0),
+        new Vector2(-1, 0)
+    };
+
     private System.Random rnd = new System.Random();
-    private int _width, _height;
-    private Vector2 _currentTile;
+
+    private Vector2 currentTile;
     public Vector2 CurrentTile
     {
-        get
-        {
-            return _currentTile;
-        }
+        get { return currentTile; }
 
         private set
         {
@@ -32,9 +39,9 @@ public class MazeGenerator : MonoBehaviour
             {
                 throw new ArgumentException("CurrentTile must be within the one tile border all around the maze");
             }
-            if (value.x % 2 == 1 || value.y % 2 == 1)
+            else if (value.x % 2 == 1 || value.y % 2 == 1)
             {
-                _currentTile = value;
+                currentTile = value;
             }
             else
             {
@@ -42,18 +49,19 @@ public class MazeGenerator : MonoBehaviour
             }
         }
     }
-    public static MazeGenerator Instance { get; private set; }
+
+    private static MazeGenerator instance;
+    public static MazeGenerator Instance
+    {
+        get { return instance; }
+    }
 
     private void Awake()
     {
-        Instance = this;
+        instance = this;
         GenerateMaze();
     }
 
-    private void Start()
-    {
-
-    }
 
     private void GenerateMaze()
     {
@@ -62,31 +70,23 @@ public class MazeGenerator : MonoBehaviour
         {
             for (int y = 0; y < height; y++)
             {
-                Maze[x, y] = 1;
+                Maze[x, y] = (int)TileType.wall;
             }
         }
+
         CurrentTile = Vector2.one;
-        _tiletoTry.Push(CurrentTile);
-        Maze = CreateMaze();
-        //GameObject ptype = null;
+        tileStack.Push(CurrentTile);
+        PrimsAlg();
 
         for (int i = 0; i <= Maze.GetUpperBound(0); i++)
         {
-            for (int j = 0; j <= Maze.GetUpperBound(0); j++)
+            for (int j = 0; j <= Maze.GetUpperBound(1); j++)
             {
-                if (Maze[i, j] == 1)
+                if (Maze[i, j] == (int)TileType.wall)
                 {
-                    //ptype = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                    //ptype.transform.position = new Vector3(i * ptype.transform.localScale.x, j * ptype.transform.localScale.y, 0);
-                    //if (brick != null)
-                    //{
-                    //    ptype.renderer.material = brick;
-                    //}
-                    //ptype.transform.parent = transform;
-
-                    Instantiate(Brick, new Vector3(i, 0, j), Quaternion.identity);
+                    Instantiate(brick, new Vector3(i * brick.localScale.x, 0, j * brick.localScale.z), Quaternion.identity);
                 }
-                else if (Maze[i, j] == 0)
+                else if (Maze[i, j] == (int)TileType.path)
                 {
                     pathMazes.Add(new Vector3(i, 0, j));
                 }
@@ -94,37 +94,25 @@ public class MazeGenerator : MonoBehaviour
         }
     }
 
-    public int[,] CreateMaze()
+    private void PrimsAlg()
     {
-        //local variable to store neighbors to current square
         List<Vector2> neighbors;
-        //as long as there are sitll tiles to try
-        while (_tiletoTry.Count > 0)
+        while (tileStack.Count > 0)
         {
-            //excavate the square we are on
-            Maze[(int)CurrentTile.x, (int)CurrentTile.y] = 0;
+            Maze[(int)CurrentTile.x, (int)CurrentTile.y] = (int)TileType.path;
 
-            //get all valid neighbors for the new tile
             neighbors = GetValidNeighbors(CurrentTile);
 
-            //if there are any interesting looking neighbors
             if (neighbors.Count > 0)
             {
-                //remember this tile by pushing it onto the stack
-                _tiletoTry.Push(CurrentTile);
-                //move on to a random of the neighboring tiles
+                tileStack.Push(CurrentTile);
                 CurrentTile = neighbors[rnd.Next(neighbors.Count)];
             }
             else
             {
-                //if there were no neighbors to try, it's a dead end
-                //toss the tile out
-                //(and return to a previous tile on the list to check)
-                CurrentTile = _tiletoTry.Pop();
+                CurrentTile = tileStack.Pop();
             }
         }
-
-        return Maze;
     }
 
     /// <summary>
@@ -134,12 +122,11 @@ public class MazeGenerator : MonoBehaviour
     /// <returns>Any and all valid neighbors</returns>
     private List<Vector2> GetValidNeighbors(Vector2 centerTile)
     {
-
         List<Vector2> validNeighbors = new List<Vector2>();
 
-        foreach (var offset in offsets)
+        foreach (Vector2 offset in offsets)
         {
-            Vector2 toCheck = new Vector2(centerTile.x + offset.x, centerTile.y + offset.y);
+            Vector2 toCheck = centerTile + offset;
 
             if (toCheck.x % 2 == 1 || toCheck.y % 2 == 1)
             {
@@ -157,11 +144,11 @@ public class MazeGenerator : MonoBehaviour
     {
         int intactWallCounter = 0;
 
-        foreach (var offset in offsets)
+        foreach (Vector2 offset in offsets)
         {
-            Vector2 neighborToCheck = new Vector2(Vector2ToCheck.x + offset.x, Vector2ToCheck.y + offset.y);
+            Vector2 neighborToCheck = Vector2ToCheck + offset;
 
-            if (IsInside(neighborToCheck) && Maze[(int)neighborToCheck.x, (int)neighborToCheck.y] == 1)
+            if (IsInsideMaze(neighborToCheck) && Maze[(int)neighborToCheck.x, (int)neighborToCheck.y] == (int)TileType.wall)
             {
                 intactWallCounter++;
             }
@@ -170,7 +157,7 @@ public class MazeGenerator : MonoBehaviour
         return intactWallCounter == 3;
     }
 
-    private bool IsInside(Vector2 p)
+    private bool IsInsideMaze(Vector2 p)
     {
         return p.x >= 0 && p.y >= 0 && p.x < width && p.y < height;
     }
