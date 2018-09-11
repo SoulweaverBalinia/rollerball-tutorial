@@ -6,6 +6,9 @@ using UnityEngine;
 
 public class MazePlayerController : MonoBehaviour
 {
+    private const string Horizontal = "Horizontal";
+    private const string Vertical = "Vertical";
+
     private Rigidbody rb;
 
     [SerializeField]
@@ -18,8 +21,8 @@ public class MazePlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
-        float moveHorizontal = Input.GetAxis("Horizontal");
-        float moveVertical = Input.GetAxis("Vertical");
+        float moveHorizontal = Input.GetAxis(Horizontal);
+        float moveVertical = Input.GetAxis(Vertical);
 
         Vector3 movement = new Vector3(moveHorizontal, 0.0f, moveVertical);
 
