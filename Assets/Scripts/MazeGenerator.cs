@@ -11,20 +11,13 @@ public class MazeGenerator : MonoBehaviour
     [SerializeField]
     private int height;
 
-    public Transform brick;
-    private int[,] Maze;
-
     private enum TileType { path, wall };
+    public Transform brick;
+    private TileType[,] Maze;
+
+
     private List<Vector3> pathMazes = new List<Vector3>();
     private Stack<Vector2> tileStack = new Stack<Vector2>();
-
-    private readonly List<Vector2> offsets = new List<Vector2>
-    {
-        new Vector2(0, 1),
-        new Vector2(0, -1),
-        new Vector2(1, 0),
-        new Vector2(-1, 0)
-    };
 
     private System.Random rnd = new System.Random();
 
@@ -62,46 +55,66 @@ public class MazeGenerator : MonoBehaviour
         GenerateMaze();
     }
 
-
     private void GenerateMaze()
     {
-        Maze = new int[width, height];
+        Maze = new TileType[width, height];
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
             {
-                Maze[x, y] = (int)TileType.wall;
+                Maze[x, y] = TileType.wall;
             }
         }
 
         CurrentTile = Vector2.one;
         tileStack.Push(CurrentTile);
-        PrimsAlg();
+        RandomMazeGenerator();
 
         for (int i = 0; i <= Maze.GetUpperBound(0); i++)
         {
             for (int j = 0; j <= Maze.GetUpperBound(1); j++)
             {
-                if (Maze[i, j] == (int)TileType.wall)
+                switch (Maze[i, j])
                 {
-                    Instantiate(brick, new Vector3(i * brick.localScale.x, 0, j * brick.localScale.z), Quaternion.identity);
+                    case TileType.wall:
+                        Instantiate(brick, new Vector3(i * brick.localScale.x, 0, j * brick.localScale.z), Quaternion.identity);
+                        break;
+                    case TileType.path:
+                        pathMazes.Add(new Vector3(i, 0, j));
+                        break;
+                    default:
+                        throw new ArgumentException("Invalid tile type.");
                 }
-                else if (Maze[i, j] == (int)TileType.path)
-                {
-                    pathMazes.Add(new Vector3(i, 0, j));
-                }
+                //if (Maze[i, j] == TileType.wall)
+                //{
+                //    Instantiate(brick, new Vector3(i * brick.localScale.x, 0, j * brick.localScale.z), Quaternion.identity);
+                //}
+                //else if (Maze[i, j] == TileType.path)
+                //{
+                //    pathMazes.Add(new Vector3(i, 0, j));
+                //}
             }
         }
     }
 
-    private void PrimsAlg()
+    // based on Prim's Algorithm
+    // does not use weights to inform generation
+    // instead randomly chooses neighbors
+    private void RandomMazeGenerator()
     {
         List<Vector2> neighbors;
+        List<Vector2> offsets = new List<Vector2>
+        {
+            new Vector2(0, 1),
+            new Vector2(0, -1),
+            new Vector2(1, 0),
+            new Vector2(-1, 0)
+        };
         while (tileStack.Count > 0)
         {
-            Maze[(int)CurrentTile.x, (int)CurrentTile.y] = (int)TileType.path;
+            Maze[(int)CurrentTile.x, (int)CurrentTile.y] = TileType.path;
 
-            neighbors = GetValidNeighbors(CurrentTile);
+            neighbors = GetValidNeighbors(CurrentTile, offsets);
 
             if (neighbors.Count > 0)
             {
@@ -120,7 +133,7 @@ public class MazeGenerator : MonoBehaviour
     /// </summary>
     /// <param name="centerTile">The tile to test</param>
     /// <returns>Any and all valid neighbors</returns>
-    private List<Vector2> GetValidNeighbors(Vector2 centerTile)
+    private List<Vector2> GetValidNeighbors(Vector2 centerTile, List<Vector2> offsets)
     {
         List<Vector2> validNeighbors = new List<Vector2>();
 
@@ -130,7 +143,7 @@ public class MazeGenerator : MonoBehaviour
 
             if (toCheck.x % 2 == 1 || toCheck.y % 2 == 1)
             {
-                if (Maze[(int)toCheck.x, (int)toCheck.y] == 1 && HasThreeWallsIntact(toCheck))
+                if (Maze[(int)toCheck.x, (int)toCheck.y] == TileType.wall && HasThreeWallsIntact(toCheck, offsets))
                 {
                     validNeighbors.Add(toCheck);
                 }
@@ -140,7 +153,7 @@ public class MazeGenerator : MonoBehaviour
         return validNeighbors;
     }
 
-    private bool HasThreeWallsIntact(Vector2 Vector2ToCheck)
+    private bool HasThreeWallsIntact(Vector2 Vector2ToCheck, List<Vector2> offsets)
     {
         int intactWallCounter = 0;
 
@@ -148,7 +161,7 @@ public class MazeGenerator : MonoBehaviour
         {
             Vector2 neighborToCheck = Vector2ToCheck + offset;
 
-            if (IsInsideMaze(neighborToCheck) && Maze[(int)neighborToCheck.x, (int)neighborToCheck.y] == (int)TileType.wall)
+            if (IsInsideMaze(neighborToCheck) && Maze[(int)neighborToCheck.x, (int)neighborToCheck.y] == TileType.wall)
             {
                 intactWallCounter++;
             }
