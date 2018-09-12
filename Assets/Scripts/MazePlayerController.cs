@@ -11,8 +11,8 @@ public class MazePlayerController : MonoBehaviour
 
     private Rigidbody rb;
 
-    [SerializeField]
-    private float speed;
+    [Range(1.0f, 30f)]
+    public float speed;
 
     void Start()
     {
