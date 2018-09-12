@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MazeGenerator : MonoBehaviour
+public class MazeGenerator : GenericSingletonClass<MazeGenerator>
 {
     [SerializeField]
     private int width;
@@ -43,15 +43,9 @@ public class MazeGenerator : MonoBehaviour
         }
     }
 
-    private static MazeGenerator instance;
-    public static MazeGenerator Instance
+    public override void Awake()
     {
-        get { return instance; }
-    }
-
-    private void Awake()
-    {
-        instance = this;
+        base.Awake();
         GenerateMaze();
     }
 
@@ -85,14 +79,6 @@ public class MazeGenerator : MonoBehaviour
                     default:
                         throw new ArgumentException("Invalid tile type.");
                 }
-                //if (Maze[i, j] == TileType.wall)
-                //{
-                //    Instantiate(brick, new Vector3(i * brick.localScale.x, 0, j * brick.localScale.z), Quaternion.identity);
-                //}
-                //else if (Maze[i, j] == TileType.path)
-                //{
-                //    pathMazes.Add(new Vector3(i, 0, j));
-                //}
             }
         }
     }
