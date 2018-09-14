@@ -58,5 +58,4 @@ public class MazeGenerator : GenericSingletonClass<MazeGenerator>
             }
         }
     }
-
 }
