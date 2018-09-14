@@ -14,10 +14,8 @@ public class MazeGenerator : GenericSingletonClass<MazeGenerator>
     private int height;
 
     private MazeAlg mazeAlgorithm;
-
     public Transform brick;
     private TileType[,] Maze;
-
 
     private List<Vector3> pathMazes = new List<Vector3>();
     private Stack<Vector2> tileStack = new Stack<Vector2>();
