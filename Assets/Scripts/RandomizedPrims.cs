@@ -14,14 +14,6 @@ public class RandomizedPrims : MazeAlg {
 
     private Stack<Vector2> tileStack;
 
-    private List<Vector2> offsets = new List<Vector2>
-        {
-            new Vector2(0, 1),
-            new Vector2(0, -1),
-            new Vector2(1, 0),
-            new Vector2(-1, 0)
-        };
-
     private Vector2 currentTile;
     public Vector2 CurrentTile
     {
@@ -58,12 +50,19 @@ public class RandomizedPrims : MazeAlg {
         tileStack.Push(CurrentTile);
 
         List<Vector2> neighbors;
+        List<Vector2> offsets = new List<Vector2>
+        {
+            new Vector2(0, 1),
+            new Vector2(0, -1),
+            new Vector2(1, 0),
+            new Vector2(-1, 0)
+        };
 
         while (tileStack.Count > 0)
         {
             Maze[(int)CurrentTile.x, (int)CurrentTile.y] = TileType.path;
 
-            neighbors = GetValidNeighbors(ref Maze, CurrentTile);
+            neighbors = GetValidNeighbors(ref Maze, CurrentTile, offsets);
 
             if (neighbors.Count > 0)
             {
@@ -82,7 +81,7 @@ public class RandomizedPrims : MazeAlg {
     /// </summary>
     /// <param name="centerTile">The tile to test</param>
     /// <returns>Any and all valid neighbors</returns>
-    private List<Vector2> GetValidNeighbors(ref TileType[,] Maze, Vector2 centerTile)
+    private List<Vector2> GetValidNeighbors(ref TileType[,] Maze, Vector2 centerTile, List<Vector2> offsets)
     {
         List<Vector2> validNeighbors = new List<Vector2>();
 
@@ -92,7 +91,7 @@ public class RandomizedPrims : MazeAlg {
 
             if (toCheck.x % 2 == 1 || toCheck.y % 2 == 1)
             {
-                if (Maze[(int)toCheck.x, (int)toCheck.y] == TileType.wall && HasThreeWallsIntact(ref Maze, toCheck))
+                if (Maze[(int)toCheck.x, (int)toCheck.y] == TileType.wall && HasThreeWallsIntact(ref Maze, toCheck, offsets))
                 {
                     validNeighbors.Add(toCheck);
                 }
@@ -102,7 +101,7 @@ public class RandomizedPrims : MazeAlg {
         return validNeighbors;
     }
 
-    private bool HasThreeWallsIntact(ref TileType[,] Maze, Vector2 Vector2ToCheck)
+    private bool HasThreeWallsIntact(ref TileType[,] Maze, Vector2 Vector2ToCheck, List<Vector2> offsets)
     {
         int intactWallCounter = 0;
 
