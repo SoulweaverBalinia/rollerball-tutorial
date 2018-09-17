@@ -3,16 +3,14 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class RandomizedPrims : MazeAlg {
+public class RandomizedPrims : MazeAlg
+{
     // based on Prim's Algorithm
     // does not use weights to inform generation
     // instead randomly chooses neighbors
 
     private System.Random rnd = new System.Random();
-    private readonly int width;
-    private readonly int height;
-
-    private Stack<Vector2> tileStack;
+    private Stack<Vector2> tileStack = new Stack<Vector2>();
 
     private Vector2 currentTile;
     public Vector2 CurrentTile
@@ -36,16 +34,11 @@ public class RandomizedPrims : MazeAlg {
         }
     }
 
-    public RandomizedPrims(int width, int height, ref Stack<Vector2> tileStack) : base()
-    {
-        this.width = width;
-        this.height = height;
-        this.tileStack = tileStack;
-    }
+    public RandomizedPrims(int width, int height) : base(width, height) { }
 
-    public override void MakeMaze(ref TileType[,] Maze)
+    public override void MakeMaze()
     {
-        base.MakeMaze(ref Maze);
+        base.MakeMaze();
         CurrentTile = Vector2.one;
         tileStack.Push(CurrentTile);
 
@@ -62,7 +55,7 @@ public class RandomizedPrims : MazeAlg {
         {
             Maze[(int)CurrentTile.x, (int)CurrentTile.y] = TileType.path;
 
-            neighbors = GetValidNeighbors(ref Maze, CurrentTile, offsets);
+            neighbors = GetValidNeighbors(CurrentTile, offsets);
 
             if (neighbors.Count > 0)
             {
@@ -81,7 +74,7 @@ public class RandomizedPrims : MazeAlg {
     /// </summary>
     /// <param name="centerTile">The tile to test</param>
     /// <returns>Any and all valid neighbors</returns>
-    private List<Vector2> GetValidNeighbors(ref TileType[,] Maze, Vector2 centerTile, List<Vector2> offsets)
+    private List<Vector2> GetValidNeighbors(Vector2 centerTile, List<Vector2> offsets)
     {
         List<Vector2> validNeighbors = new List<Vector2>();
 
@@ -91,7 +84,7 @@ public class RandomizedPrims : MazeAlg {
 
             if (toCheck.x % 2 == 1 || toCheck.y % 2 == 1)
             {
-                if (Maze[(int)toCheck.x, (int)toCheck.y] == TileType.wall && HasThreeWallsIntact(ref Maze, toCheck, offsets))
+                if (Maze[(int)toCheck.x, (int)toCheck.y] == TileType.wall && HasThreeWallsIntact(toCheck, offsets))
                 {
                     validNeighbors.Add(toCheck);
                 }
@@ -101,7 +94,7 @@ public class RandomizedPrims : MazeAlg {
         return validNeighbors;
     }
 
-    private bool HasThreeWallsIntact(ref TileType[,] Maze, Vector2 Vector2ToCheck, List<Vector2> offsets)
+    private bool HasThreeWallsIntact(Vector2 Vector2ToCheck, List<Vector2> offsets)
     {
         int intactWallCounter = 0;
 
@@ -122,5 +115,4 @@ public class RandomizedPrims : MazeAlg {
     {
         return p.x >= 0 && p.y >= 0 && p.x < width && p.y < height;
     }
-
 }
