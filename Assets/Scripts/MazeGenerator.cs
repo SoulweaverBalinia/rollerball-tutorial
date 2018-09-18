@@ -1,9 +1,5 @@
-﻿using System.Collections;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
-
-public enum TileType { path, wall };
 
 public class MazeGenerator : GenericSingletonClass<MazeGenerator>
 {

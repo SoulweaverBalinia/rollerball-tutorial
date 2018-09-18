@@ -1,9 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
-
 public class MazePlayerController : MonoBehaviour
 {
     private const string Horizontal = "Horizontal";
@@ -12,7 +9,8 @@ public class MazePlayerController : MonoBehaviour
     private Rigidbody rb;
 
     [Range(1.0f, 30f)]
-    public float speed;
+    [SerializeField]
+    private float speed;
 
     void Start()
     {
